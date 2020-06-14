@@ -55,3 +55,7 @@ jobs:
         - docker tag $DOCKER_USERNAME/${IMAGE}:${VERSION}
           $DOCKER_USERNAME/${IMAGE}:master
         - docker push $DOCKER_USERNAME/${IMAGE}:master
+
+        - docker tag $DOCKER_USERNAME/${IMAGE}:${VERSION}
+          $DOCKER_USERNAME/${IMAGE}:latest
+        - docker push $DOCKER_USERNAME/${IMAGE}:latest
