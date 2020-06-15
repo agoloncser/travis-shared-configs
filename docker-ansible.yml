@@ -23,13 +23,12 @@ script:
   - docker exec --tty travis env TERM=vt100 yamllint --version
   - docker exec --tty travis env TERM=vt100 prettier --version
   - docker exec --tty travis env TERM=vt100 molecule --version
-
-after_success:
-  # docker_push
-  - docker tag travis $DOCKER_USERNAME/${IMAGE}:${VERSION}
-  - if [ "$TRAVIS_BRANCH" == master ] ; then docker tag travis
-    $DOCKER_USERNAME/${IMAGE}:latest ; fi
-  - docker images
-  - docker push $DOCKER_USERNAME/${IMAGE}:${VERSION}
-  - if [ "$TRAVIS_BRANCH" == master ] ; then docker push
-    $DOCKER_USERNAME/${IMAGE}:latest ; fi
+# after_success:
+#   # docker_push
+#   - docker tag travis $DOCKER_USERNAME/${IMAGE}:${VERSION}
+#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker tag travis
+#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
+#   - docker images
+#   - docker push $DOCKER_USERNAME/${IMAGE}:${VERSION}
+#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker push
+#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
