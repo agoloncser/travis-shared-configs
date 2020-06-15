@@ -4,6 +4,8 @@ services:
   - docker
 
 script:
+  # template file
+  - Dockerfile.template | envsubst > Dockerfile
   # docker_login
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
     --password-stdin
