@@ -1,0 +1,35 @@
+---
+language: python
+services:
+  - docker
+
+script:
+  # template file
+  - if [ -e Dockerfile.template ] ; then cat Dockerfile.template | envsubst >
+    Dockerfile ; fi
+  # docker_login
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
+    --password-stdin
+
+  # docker_build
+  - docker build --tag travis .
+  - docker images
+  - docker ps -a
+
+  # docker_test
+  - docker run -d --name travis -v /sys/fs/cgroup:/sys/fs/cgroup:ro testing
+  - docker ps -a
+  - docker exec --tty travis env TERM=vt100 ansible --version
+  - docker exec --tty travis env TERM=vt100 ansible-lint --version
+  - docker exec --tty travis env TERM=vt100 yamllint --version
+  - docker exec --tty travis env TERM=vt100 prettier --version
+  - docker exec --tty travis env TERM=vt100 molecule --version
+# after_success:
+#   # docker_push
+#   - docker tag travis $DOCKER_USERNAME/${IMAGE}:${VERSION}
+#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker tag travis
+#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
+#   - docker images
+#   - docker push $DOCKER_USERNAME/${IMAGE}:${VERSION}
+#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker push
+#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
