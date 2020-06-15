@@ -3,32 +3,59 @@ language: python
 services:
   - docker
 
-script:
-  # template file
-  - Dockerfile.template | envsubst > Dockerfile
-  # docker_login
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
-    --password-stdin
+jobs:
+  include:
+    - stage: build docker image
+      script:
+        # docker_login
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
+          --password-stdin
 
-  # docker_build
-  - docker build --tag travis .
-  - docker images
-  - docker ps -a
+        # docker_build
+        - docker build --tag testing . || travis_terminate 1;
+        - docker images
+        - docker ps -a
 
-  # docker_test
-  - docker run -d --name travis -v /sys/fs/cgroup:/sys/fs/cgroup:ro testing
-  - docker ps -a
-  - docker exec --tty travis env TERM=vt100 ansible --version
-  - docker exec --tty travis env TERM=vt100 ansible-lint --version
-  - docker exec --tty travis env TERM=vt100 yamllint --version
-  - docker exec --tty travis env TERM=vt100 prettier --version
-  - docker exec --tty travis env TERM=vt100 molecule --version
-# after_success:
-#   # docker_push
-#   - docker tag travis $DOCKER_USERNAME/${IMAGE}:${VERSION}
-#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker tag travis
-#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
-#   - docker images
-#   - docker push $DOCKER_USERNAME/${IMAGE}:${VERSION}
-#   - if [ "$TRAVIS_BRANCH" == master ] ; then docker push
-#     $DOCKER_USERNAME/${IMAGE}:latest ; fi
+        # docker_test
+        - docker run --privileged -d --name testing -v
+          /sys/fs/cgroup:/sys/fs/cgroup:ro testing
+        - docker ps -a
+        - docker exec --tty testing env TERM=vt100 ansible --version ||
+          travis_terminate 1;
+        - docker exec --tty testing env TERM=vt100 ansible-lint --version ||
+          travis_terminate 1;
+        - docker exec --tty testing env TERM=vt100 yamllint --version ||
+          travis_terminate 1;
+        - docker exec --tty testing env TERM=vt100 prettier --version ||
+          travis_terminate 1;
+        - docker exec --tty testing env TERM=vt100 molecule --version ||
+          travis_terminate 1;
+
+        # docker_push
+        - docker tag testing $DOCKER_USERNAME/${IMAGE}:${VERSION}
+        - docker images
+        - docker push $DOCKER_USERNAME/${IMAGE}:${VERSION}
+    - stage: test
+      script:
+        # docker_pull
+        - docker images
+        - docker ps -a
+        - docker run --privileged -d --name testing -v
+          /sys/fs/cgroup:/sys/fs/cgroup:ro $DOCKER_USERNAME/${IMAGE}:${VERSION}
+        - docker ps -a
+        - docker exec --tty testing env TERM=vt100 ansible --version
+    - state: tag master
+      if: branch = master
+      script:
+        # docker_login
+        - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
+          --password-stdin
+        # tag version as master and push
+        - docker pull $DOCKER_USERNAME/${IMAGE}:${VERSION}
+        - docker tag $DOCKER_USERNAME/${IMAGE}:${VERSION}
+          $DOCKER_USERNAME/${IMAGE}:master
+        - docker push $DOCKER_USERNAME/${IMAGE}:master
+
+        - docker tag $DOCKER_USERNAME/${IMAGE}:${VERSION}
+          $DOCKER_USERNAME/${IMAGE}:latest
+        - docker push $DOCKER_USERNAME/${IMAGE}:latest
