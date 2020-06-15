@@ -5,7 +5,8 @@ services:
 
 script:
   # template file
-  - Dockerfile.template | envsubst > Dockerfile
+  - if [ -e Dockerfile.template ] ; then cat Dockerfile.template | envsubst >
+    Dockerfile ; fi
   # docker_login
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME"
     --password-stdin
