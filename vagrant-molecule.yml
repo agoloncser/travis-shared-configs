@@ -1,0 +1,54 @@
+---
+os: linux
+dist: bionic
+language: python
+python: "3.7"
+
+cache:
+  directories:
+    - $HOME/.vagrant.d/boxes
+    - $HOME/.cache/pip
+    - $HOME/.cache/yarn
+
+addons:
+  apt:
+    update: true
+    packages:
+      - python-pip
+      - curl
+      - qemu-kvm
+      - qemu-utils
+      - libvirt-bin
+      - libvirt0
+      - libvirt-dev
+
+install:
+  # ansible
+  - pip install ansible yamllint ansible-lint molecule molecule-vagrant paramiko
+
+  # prettier
+  - >-
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+  - >-
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee
+    /etc/apt/sources.list.d/yarn.list
+  - sudo apt install -y yarn
+  - yarn global add prettier --dev --exact
+
+  # libvirt
+  - >-
+    curl -sSo vagrant.deb
+    https://releases.hashicorp.com/vagrant/$VAGRANT_VER/vagrant_"$VAGRANT_VER"_x86_64.deb
+  - sudo dpkg -i vagrant.deb
+  - vagrant plugin install vagrant-libvirt
+  - pip install molecule molecule-vagrant python-vagrant paramiko
+  - sudo chmod o+rwx /var/run/libvirt/libvirt-sock
+  - molecule test
+
+  # versions
+  - ansible --version
+  - molecule --version
+  - prettier --version
+
+script:
+  - molecule test
