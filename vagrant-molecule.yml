@@ -43,13 +43,14 @@ install:
   - vagrant plugin install vagrant-libvirt
   - pip install molecule molecule-vagrant python-vagrant paramiko
   - sudo chmod o+rwx /var/run/libvirt/libvirt-sock
-  - if [ ! -z "$ROLE_NAME "] ; then cd ../ ; mv ansible-role-${ROLE_NAME} $ROLE_NAME ; cd $ROLE_NAME ; fi
-  - molecule test
 
   # versions
   - ansible --version
   - molecule --version
   - prettier --version
+
+before_script:
+  - if [ ! -z "$ROLE_NAME "] ; then cd ../ ; mv ansible-role-${ROLE_NAME} $ROLE_NAME ; cd $ROLE_NAME ; fi
 
 script:
   - molecule test
