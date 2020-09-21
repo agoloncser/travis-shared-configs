@@ -50,6 +50,7 @@ install:
   - prettier --version
 
 before_script:
+  - pwd
   - cd ../ ; mv ansible-role-${ROLE_NAME} $ROLE_NAME ; cd $ROLE_NAME
 
 script:
