@@ -32,7 +32,7 @@ install:
   - >-
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee
     /etc/apt/sources.list.d/yarn.list
-  - sudo apt install -y yarn
+  - sudo apt-get install -y yarn
   - yarn global add prettier --dev --exact
 
   # libvirt
@@ -43,12 +43,16 @@ install:
   - vagrant plugin install vagrant-libvirt
   - pip install molecule molecule-vagrant python-vagrant paramiko
   - sudo chmod o+rwx /var/run/libvirt/libvirt-sock
-  - molecule test
 
   # versions
   - ansible --version
   - molecule --version
   - prettier --version
+
+before_script:
+  - pwd
+  - echo $TRAVIS_BUILD_DIR
+  - cd ../ ; mv ansible-role-${ROLE_NAME} $ROLE_NAME ; cd $ROLE_NAME
 
 script:
   - molecule test
