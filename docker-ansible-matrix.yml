@@ -20,11 +20,6 @@ script:
   - docker run -d --privileged --name travis -v /sys/fs/cgroup:/sys/fs/cgroup:ro
     travis
   - docker ps -a
-  - docker exec --tty travis env TERM=vt100 ansible --version
-  - docker exec --tty travis env TERM=vt100 ansible-lint --version
-  - docker exec --tty travis env TERM=vt100 yamllint --version
-  - docker exec --tty travis env TERM=vt100 prettier --version
-  - docker exec --tty travis env TERM=vt100 molecule --version
 
 after_success:
   # docker_push
